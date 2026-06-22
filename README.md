@@ -1,32 +1,54 @@
-# Agenda Universitaria 📚🎓
+# Academic Agenda
 
-Una potente y elegante aplicación de organización académica para Android diseñada para ayudar a las y los estudiantes universitarios a gestionar sus materias, clases, tareas y recordatorios de manera centralizada, eficiente y profesional.
+A modern and efficient Android application designed to help university students manage courses, schedules, assignments, and academic commitments from a single, organized platform.
 
-## 🌟 Características Principales
+## Key Features
 
-*   **Panel de Control Centralizado (Dashboard):** Visualiza de un vistazo las asignaturas del día, próximas alertas activas y recibe frases motivacionales de estudio que fomentan la constancia y disciplina académica.
-*   **Gestión de Materias:** Registra tus asignaturas detallando nombre, aula, profesor, grupo de estudio, horarios (inicio/fin) y días de la semana correspondientes.
-*   **Calendario Académico Integrado:** Un calendario interactivo donde puedes ver de forma gráfica tu horario semanal, filtrar pendientes programados por día específico y ver códigos de colores asociados a cada materia.
-*   **Seguimiento de Tareas:** Organiza tus deberes y proyectos. Asócialos a una materia específica, define su nivel de prioridad (Alta/Normal) y realiza un seguimiento visual del estado (Pendientes vs. Completadas).
-*   **Módulo de Recordatorios y Alarmas:** Configura recordatorios para tus entregas con opciones de pre-alerta (de 5 a 60 minutos antes) que emiten notificaciones nativas en el sistema para evitar entregas tardías.
-*   **Visualización de Progreso (Flor de la Constancia):** Un gráfico dinámico e interactivo en forma de flor que crece y florece a medida que completas tus tareas diarias, proporcionando retroalimentación visual sobre tu nivel de cumplimiento ético y académico.
-*   **Selector de Temas Personalizado:** Ajusta el aspecto visual de la aplicación con una paleta de 6 combinaciones de colores únicas (*Amarillo Oro*, *Gris Neutro*, *Azul Océano*, *Verde Bosque*, *Rosa Pastel* y *Púrpura Imperial*), totalmente compatible con el **Tema Claro** y **Tema Oscuro** del sistema y con persistencia en el dispositivo.
+### Academic Dashboard
 
-## 🛠️ Stack Tecnológico y Arquitectura
+A centralized workspace that provides a concise overview of academic activities, including scheduled courses, upcoming deadlines, active reminders, and productivity-focused insights. The dashboard is designed to support effective planning, organization, and academic consistency throughout the semester.
 
-*   **Lenguaje:** [Kotlin](https://kotlinlang.org/) — 100% de la lógica de programación.
-*   **Interfaz de Usuario:** [Jetpack Compose](https://developer.android.com/compose) — UI declarativa, moderna y totalmente adaptativa a diferentes resoluciones.
-*   **Base de Datos Local:** [Room (SQLite)](https://developer.android.com/training/data-storage/room) — Persistencia robusta y estructurada de asignaturas, tareas y alarmas de forma local y sin conexión a internet.
-*   **Inyección y Gestión de Estado:** MVVM (Model-View-ViewModel) estructurado y reactivo con `ViewModel` y `StateFlow`.
-*   **Sincronización:** Empleo de Kotlin Coroutines y Flow para operaciones asíncronas fluidas en segundo plano.
-*   **Notificaciones:** Administrador de alarmas persistentes del sistema (`AlarmManager` y `BroadcastReceiver`) para asegurar el disparo de pre-alertas con alta precisión de manera local.
+### Course Management
 
-## 📁 Estructura del Proyecto
+Create and manage courses by storing essential information such as course name, classroom, instructor, study group, class schedule, and weekly meeting days.
 
-*   `/app/src/main/java/com/example/data/`: Declaración del esquema de la base de datos (Room Entity, DAOs, Modelos y Repositorio de datos).
-*   `/app/src/main/java/com/example/ui/screens/`: Pantallas de la aplicación (Dashboard, Calendario, Materias, Tareas, Recordatorios y Estadísticas de Progreso).
-*   `/app/src/main/java/com/example/ui/theme/`: Definición de la tipografía, formas y el constructor del esquema de colores dinámico.
-*   `/app/src/main/java/com/example/receiver/`: Receptores del sistema para la gestión y despliegue de las alertas en segundo plano.
+### Integrated Academic Calendar
+
+An interactive calendar that offers a visual representation of weekly schedules, planned activities, and upcoming academic events. Students can easily review daily commitments and identify courses through color-coded organization.
+
+### Assignment Tracking
+
+Organize assignments, projects, and academic tasks in a structured environment. Tasks can be linked to specific courses, assigned priority levels, and monitored through clear completion status indicators.
+
+### Reminders and Notifications
+
+Schedule reminders for assignments, exams, and academic activities with configurable advance notifications. Native Android notifications help ensure important deadlines are not overlooked.
+
+### Progress Visualization
+
+A visual progress system that reflects task completion and academic consistency over time, providing students with meaningful feedback on their productivity and study habits.
+
+### Personalized Themes
+
+Customize the application's appearance using multiple professionally designed color schemes. Full support for both Light and Dark modes ensures a consistent and accessible user experience across different environments.
+
+## Technology Stack and Architecture
+
+* **Programming Language:** Kotlin
+* **User Interface:** Jetpack Compose
+* **Local Database:** Room (SQLite)
+* **Architecture Pattern:** MVVM (Model-View-ViewModel)
+* **State Management:** ViewModel and StateFlow
+* **Asynchronous Operations:** Kotlin Coroutines and Flow
+* **Notifications:** AlarmManager and BroadcastReceiver
+
+## Project Structure
+
+* `/app/src/main/java/com/example/data/` — Database entities, DAOs, repositories, and data models.
+* `/app/src/main/java/com/example/ui/screens/` — Application screens including Dashboard, Calendar, Courses, Assignments, Reminders, and Progress views.
+* `/app/src/main/java/com/example/ui/theme/` — Theme configuration, typography, shapes, and color system.
+* `/app/src/main/java/com/example/receiver/` — System receivers responsible for background reminder and notification handling.
 
 ---
-*Desarrollado con altos estándares de diseño Material Design 3, asegurando la mejor legibilidad, accesibilidad visual y adaptabilidad del sistema.*
+
+Developed following Material Design 3 guidelines, prioritizing usability, accessibility, maintainability, and a consistent user experience.

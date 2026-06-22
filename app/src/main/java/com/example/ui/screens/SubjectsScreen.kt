@@ -112,7 +112,7 @@ fun SubjectsScreen(
                     onClick = { showAddDialog = true },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = Color.Black
+                        contentColor = MaterialTheme.colorScheme.onPrimary
                     ),
                     shape = RoundedCornerShape(14.dp),
                     modifier = Modifier.testTag("add_subject_button")
@@ -307,7 +307,7 @@ fun SubjectsScreen(
                     },
                     modifier = Modifier.testTag("dialog_confirm_btn")
                 ) {
-                    Text("Guardar", fontWeight = FontWeight.Bold, color = Color.Black)
+                    Text("Guardar", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
                 }
             },
             dismissButton = {
@@ -480,7 +480,7 @@ fun SubjectsScreen(
                     },
                     modifier = Modifier.testTag("edit_dialog_confirm_btn")
                 ) {
-                    Text("Guardar", fontWeight = FontWeight.Bold, color = Color.Black)
+                    Text("Guardar", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
                 }
             },
             dismissButton = {

@@ -31,6 +31,7 @@ import com.example.data.Reminder
 import com.example.data.Subject
 import com.example.data.Task
 import com.example.ui.viewmodel.UniversityViewModel
+import com.example.ui.theme.LocalThemeIsDark
 import com.example.ui.theme.TulipYellowPrimary
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -168,8 +169,8 @@ fun CalendarScreen(
 
         // Custom Calendar Controller Header
         item {
-            val isDark = androidx.compose.foundation.isSystemInDarkTheme()
-            val bentoBorderColor = if (isDark) Color(0xFF3B2F11) else Color(0xFFFEF08A)
+            val isDark = LocalThemeIsDark.current
+            val bentoBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -386,8 +387,8 @@ fun CalendarScreen(
         // Empty state of lists
         if (daySubjects.isEmpty() && dayTasks.isEmpty() && dayReminders.isEmpty()) {
             item {
-                val isDark = androidx.compose.foundation.isSystemInDarkTheme()
-                val bentoBorderColor = if (isDark) Color(0xFF3B2F11) else Color(0xFFFEF08A)
+                val isDark = LocalThemeIsDark.current
+                val bentoBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -494,7 +495,7 @@ fun CalendarScreen(
 
                                 // Salon / Aula Badge with gorgeous legibility and adaptive outline border
                                 if (!subject.location.isNullOrBlank()) {
-                                    val isDark = androidx.compose.foundation.isSystemInDarkTheme()
+                                    val isDark = LocalThemeIsDark.current
                                     val badgeContentColor = if (isDark) Color.White else Color(0xFF422006)
                                     Box(
                                         modifier = Modifier
@@ -616,8 +617,8 @@ fun CalendarScreen(
             }
             items(dayTasks) { task ->
                 val associatedSubject = subjects.find { it.id == task.subjectId }
-                val isDark = androidx.compose.foundation.isSystemInDarkTheme()
-                val bentoBorderColor = if (isDark) Color(0xFF3B2F11) else Color(0xFFFEF08A)
+                val isDark = LocalThemeIsDark.current
+                val bentoBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
 
                 Card(
                     modifier = Modifier
@@ -751,8 +752,8 @@ fun CalendarScreen(
             }
             items(dayReminders) { reminder ->
                 val timeStr = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(reminder.triggerTime))
-                val isDark = androidx.compose.foundation.isSystemInDarkTheme()
-                val bentoBorderColor = if (isDark) Color(0xFF3B2F11) else Color(0xFFFEF08A)
+                val isDark = LocalThemeIsDark.current
+                val bentoBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
 
                 Card(
                     modifier = Modifier
@@ -857,7 +858,7 @@ fun CalendarScreen(
                     },
                     modifier = Modifier.testTag("cal_edit_subject_dialog_confirm")
                 ) {
-                    Text("Guardar", fontWeight = FontWeight.Bold, color = Color.Black)
+                    Text("Guardar", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
                 }
             },
             dismissButton = {
@@ -1022,7 +1023,7 @@ fun CalendarScreen(
                     },
                     modifier = Modifier.testTag("cal_edit_task_confirm")
                 ) {
-                    Text("Guardar", fontWeight = FontWeight.Bold, color = Color.Black)
+                    Text("Guardar", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
                 }
             },
             dismissButton = {

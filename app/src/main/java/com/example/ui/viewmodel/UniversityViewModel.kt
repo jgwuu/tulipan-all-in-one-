@@ -46,33 +46,7 @@ class UniversityViewModel(private val repository: UniversityRepository) : ViewMo
     }.timeInMillis)
     val selectedDate: StateFlow<Long> = _selectedDate.asStateFlow()
 
-    // Friendly, inspiring, motivational message generator for university students
-    val motivationalPhrases = listOf(
-        "Planifique su jornada con anticipación para optimizar el rendimiento académico.",
-        "La organización diaria contribuye a una mejor gestión del tiempo y reducción del estrés.",
-        "Establezca prioridades claras para abordar las entregas más relevantes de la semana.",
-        "El estudio constante y progresivo facilita la asimilación profunda de conocimientos.",
-        "Hacer pausas activas durante las sesiones largas ayuda a mantener la concentración.",
-        "Recuerde revisar los criterios de evaluación antes de realizar el envío de sus tareas.",
-        "Mantener un registro ordenado de las asignaturas ayuda al cumplimiento de los objetivos.",
-        "La constancia es un factor fundamental en el desarrollo profesional y personal.",
-        "Dedique un espacio de trabajo libre de distracciones para mejorar la calidad del estudio.",
-        "Revise de manera periódica las fechas de entrega y evite acumulaciones de última hora.",
-        "La gestión oportuna de dudas con docentes previene inconvenientes en las evaluaciones.",
-        "Asista puntualmente a las sesiones académicas para asegurar una trayectoria óptima.",
-        "Conserve buenos hábitos de descanso para sustentar el esfuerzo intelectual diario."
-    )
 
-    private val _currentPhrase = MutableStateFlow(motivationalPhrases.first())
-    val currentPhrase: StateFlow<String> = _currentPhrase.asStateFlow()
-
-    init {
-        rotatePhrase()
-    }
-
-    fun rotatePhrase() {
-        _currentPhrase.value = motivationalPhrases.random()
-    }
 
     fun selectDate(timestamp: Long) {
         _selectedDate.value = timestamp

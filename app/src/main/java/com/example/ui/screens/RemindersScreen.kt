@@ -27,6 +27,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.ui.theme.LocalThemeIsDark
 import com.example.data.Reminder
 import com.example.ui.viewmodel.UniversityViewModel
 import java.text.SimpleDateFormat
@@ -109,7 +110,7 @@ fun RemindersScreen(
                     onClick = { showAddDialog = true },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = Color.Black
+                        contentColor = MaterialTheme.colorScheme.onPrimary
                     ),
                     shape = RoundedCornerShape(14.dp),
                     modifier = Modifier.testTag("add_reminder_btn")
@@ -164,8 +165,8 @@ fun RemindersScreen(
                 val dateStr = SimpleDateFormat("EEEE dd 'de' MMMM - HH:mm", Locale("es", "ES")).format(Date(reminder.triggerTime))
                 val isExpired = reminder.triggerTime < System.currentTimeMillis()
 
-                val isDark = androidx.compose.foundation.isSystemInDarkTheme()
-                val bentoBorderColor = if (isDark) Color(0xFF3B2F11) else Color(0xFFFEF08A)
+                val isDark = LocalThemeIsDark.current
+                val bentoBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -308,7 +309,7 @@ fun RemindersScreen(
                     },
                     modifier = Modifier.testTag("dialog_confirm_btn")
                 ) {
-                    Text("Guardar", fontWeight = FontWeight.Bold, color = Color.Black)
+                    Text("Guardar", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
                 }
             },
             dismissButton = {

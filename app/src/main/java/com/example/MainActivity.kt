@@ -86,15 +86,34 @@ class MainActivity : ComponentActivity() {
             val sharedPrefs = remember { getSharedPreferences("tulipan_settings", android.content.Context.MODE_PRIVATE) }
             var themeId by remember { mutableStateOf(sharedPrefs.getInt("selected_theme", 0)) }
             var showThemeChooser by remember { mutableStateOf(!sharedPrefs.contains("selected_theme")) }
+            // 0 = Auto, 1 = Light, 2 = Dark
+            var darkLightMode by remember { mutableStateOf(sharedPrefs.getInt("dark_light_mode", 0)) }
+            // 0 = ES, 1 = EN, 2 = PT
+            var languageId by remember { mutableStateOf(sharedPrefs.getInt("selected_language", 0)) }
 
-            MyApplicationTheme(themeId = themeId) {
+            val isDarkTheme = when (darkLightMode) {
+                1 -> false
+                2 -> true
+                else -> androidx.compose.foundation.isSystemInDarkTheme()
+            }
+
+            MyApplicationTheme(darkTheme = isDarkTheme, themeId = themeId, languageId = languageId) {
                 if (showThemeChooser) {
                     com.example.ui.components.ThemeSelectionDialog(
                         currentThemeId = themeId,
                         onThemeSelected = { selected ->
                             themeId = selected
                             sharedPrefs.edit().putInt("selected_theme", selected).apply()
-                            showThemeChooser = false
+                        },
+                        currentDarkMode = darkLightMode,
+                        onDarkModeSelected = { mode ->
+                            darkLightMode = mode
+                            sharedPrefs.edit().putInt("dark_light_mode", mode).apply()
+                        },
+                        currentLanguageId = languageId,
+                        onLanguageSelected = { lang ->
+                            languageId = lang
+                            sharedPrefs.edit().putInt("selected_language", lang).apply()
                         },
                         onDismissRequest = {
                             if (sharedPrefs.contains("selected_theme")) {
@@ -116,9 +135,10 @@ class MainActivity : ComponentActivity() {
                             modifier = Modifier.testTag("bottom_nav_bar"),
                             containerColor = MaterialTheme.colorScheme.surface
                         ) {
+                            val inicioLabel = com.example.ui.theme.L10n.getString("tab_inicio", languageId)
                             NavigationBarItem(
-                                icon = { Icon(imageVector = Icons.Filled.Home, contentDescription = "Inicio") },
-                                label = { Text("Inicio") },
+                                icon = { Icon(imageVector = Icons.Filled.Home, contentDescription = inicioLabel) },
+                                label = { Text(inicioLabel) },
                                 selected = currentRoute == "inicio",
                                 onClick = { navController.navigate("inicio") { popUpTo("inicio") { saveState = true }; launchSingleTop = true } },
                                 colors = NavigationBarItemDefaults.colors(
@@ -129,9 +149,10 @@ class MainActivity : ComponentActivity() {
                                 modifier = Modifier.testTag("nav_item_inicio")
                             )
 
+                            val calendLabel = com.example.ui.theme.L10n.getString("tab_calendario", languageId)
                             NavigationBarItem(
-                                icon = { Icon(imageVector = Icons.Filled.DateRange, contentDescription = "Calendario") },
-                                label = { Text("Calendario") },
+                                icon = { Icon(imageVector = Icons.Filled.DateRange, contentDescription = calendLabel) },
+                                label = { Text(calendLabel) },
                                 selected = currentRoute == "calendario",
                                 onClick = { navController.navigate("calendario") { popUpTo("inicio") { saveState = true }; launchSingleTop = true } },
                                 colors = NavigationBarItemDefaults.colors(
@@ -142,9 +163,10 @@ class MainActivity : ComponentActivity() {
                                 modifier = Modifier.testTag("nav_item_calendario")
                             )
 
+                            val materiasLabel = com.example.ui.theme.L10n.getString("tab_materias", languageId)
                             NavigationBarItem(
-                                icon = { Icon(imageVector = Icons.Filled.School, contentDescription = "Materias") },
-                                label = { Text("Materias") },
+                                icon = { Icon(imageVector = Icons.Filled.School, contentDescription = materiasLabel) },
+                                label = { Text(materiasLabel) },
                                 selected = currentRoute == "materias",
                                 onClick = { navController.navigate("materias") { popUpTo("inicio") { saveState = true }; launchSingleTop = true } },
                                 colors = NavigationBarItemDefaults.colors(
@@ -155,9 +177,10 @@ class MainActivity : ComponentActivity() {
                                 modifier = Modifier.testTag("nav_item_materias")
                             )
 
+                            val tareasLabel = com.example.ui.theme.L10n.getString("tab_tareas", languageId)
                             NavigationBarItem(
-                                icon = { Icon(imageVector = Icons.Filled.Assignment, contentDescription = "Tareas") },
-                                label = { Text("Tareas") },
+                                icon = { Icon(imageVector = Icons.Filled.Assignment, contentDescription = tareasLabel) },
+                                label = { Text(tareasLabel) },
                                 selected = currentRoute == "tareas",
                                 onClick = { navController.navigate("tareas") { popUpTo("inicio") { saveState = true }; launchSingleTop = true } },
                                 colors = NavigationBarItemDefaults.colors(
@@ -168,9 +191,10 @@ class MainActivity : ComponentActivity() {
                                 modifier = Modifier.testTag("nav_item_tareas")
                             )
 
+                            val alarmasLabel = com.example.ui.theme.L10n.getString("tab_alarmas", languageId)
                             NavigationBarItem(
-                                icon = { Icon(imageVector = Icons.Filled.NotificationsActive, contentDescription = "Recordatorios") },
-                                label = { Text("Alarmas") },
+                                icon = { Icon(imageVector = Icons.Filled.NotificationsActive, contentDescription = alarmasLabel) },
+                                label = { Text(alarmasLabel) },
                                 selected = currentRoute == "recordatorios",
                                 onClick = { navController.navigate("recordatorios") { popUpTo("inicio") { saveState = true }; launchSingleTop = true } },
                                 colors = NavigationBarItemDefaults.colors(

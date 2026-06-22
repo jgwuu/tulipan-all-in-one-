@@ -1,6 +1,6 @@
 {
-  "name": "Agenda Universitaria",
-  "description": "Agenda académica para la organización y seguimiento detallado de materias, tareas y recordatorios universitarios.",
+  "name": "Tulipán",
+  "description": "Agenda académica para la organización y seguimiento detallado de materias, tareas y recordatorios universitarios con personalización de paleta de colores y modos claro/oscuro.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

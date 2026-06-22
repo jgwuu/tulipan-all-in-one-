@@ -25,6 +25,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.ui.theme.LocalThemeIsDark
 import com.example.ui.viewmodel.UniversityViewModel
 
 @Composable
@@ -110,8 +111,8 @@ fun StatsScreen(
     val completionRatio = if (totalTasks > 0) completedTasksNum.toFloat() / totalTasks else 0.0f
     val displayPercent = (completionRatio * 100).toInt()
 
-    val isDark = androidx.compose.foundation.isSystemInDarkTheme()
-    val bentoBorderColor = if (isDark) Color(0xFF3B2F11) else Color(0xFFFEF08A)
+    val isDark = LocalThemeIsDark.current
+    val bentoBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
 
     LazyColumn(
         modifier = modifier

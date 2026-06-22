@@ -33,6 +33,7 @@ import com.example.data.Subject
 import com.example.data.Task
 import com.example.ui.viewmodel.UniversityViewModel
 import androidx.compose.foundation.isSystemInDarkTheme
+import com.example.ui.theme.LocalThemeIsDark
 import com.example.ui.theme.TulipYellowPrimary
 import java.text.SimpleDateFormat
 import java.util.*
@@ -115,7 +116,7 @@ fun TasksScreen(
                     onClick = { showAddTaskDialog = true },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = Color.Black
+                        contentColor = MaterialTheme.colorScheme.onPrimary
                     ),
                     shape = RoundedCornerShape(14.dp),
                     modifier = Modifier.testTag("add_task_btn")
@@ -198,8 +199,8 @@ fun TasksScreen(
                 val associatedSubject = subjects.find { it.id == task.subjectId }
                 val dateStr = SimpleDateFormat("dd 'de' MMMM, yyyy", Locale("es", "ES")).format(Date(task.deadlineDate))
 
-                val isDark = androidx.compose.foundation.isSystemInDarkTheme()
-                val bentoBorderColor = if (isDark) Color(0xFF3B2F11) else Color(0xFFFEF08A)
+                val isDark = LocalThemeIsDark.current
+                val bentoBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -263,7 +264,7 @@ fun TasksScreen(
 
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 // Priority flag with beautiful high-contrast Material 3 colors
-                                val isDark = isSystemInDarkTheme()
+                                val isDark = LocalThemeIsDark.current
                                 val badgeBg = when (task.priority) {
                                     "Urgente" -> MaterialTheme.colorScheme.errorContainer
                                     "Normal" -> MaterialTheme.colorScheme.primaryContainer
@@ -420,7 +421,7 @@ fun TasksScreen(
                     },
                     modifier = Modifier.testTag("dialog_confirm_btn")
                 ) {
-                    Text("Guardar", fontWeight = FontWeight.Bold, color = Color.Black)
+                    Text("Guardar", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
                 }
             },
             dismissButton = {
@@ -670,7 +671,7 @@ fun TasksScreen(
                     },
                     modifier = Modifier.testTag("edit_dialog_confirm_btn")
                 ) {
-                    Text("Guardar", fontWeight = FontWeight.Bold, color = Color.Black)
+                    Text("Guardar", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
                 }
             },
             dismissButton = {

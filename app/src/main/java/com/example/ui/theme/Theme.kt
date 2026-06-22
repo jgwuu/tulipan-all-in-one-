@@ -5,7 +5,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+
+val LocalThemeIsDark = staticCompositionLocalOf { false }
 
 // 0: Amarillo Oro (Original)
 private val Theme0Light = lightColorScheme(
@@ -197,6 +201,7 @@ private val Theme5Dark = darkColorScheme(
 fun MyApplicationTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     themeId: Int = 0,
+    languageId: Int = 0,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when (themeId) {
@@ -208,9 +213,14 @@ fun MyApplicationTheme(
         else -> if (darkTheme) Theme0Dark else Theme0Light // 0: Clásico Tulipán
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
-    )
+    CompositionLocalProvider(
+        LocalThemeIsDark provides darkTheme,
+        LocalLanguage provides languageId
+    ) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = Typography,
+            content = content
+        )
+    }
 }

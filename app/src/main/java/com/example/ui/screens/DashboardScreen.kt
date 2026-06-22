@@ -40,6 +40,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.ui.theme.LocalThemeIsDark
+import com.example.ui.theme.L10n
+import com.example.ui.theme.LocalLanguage
 import com.example.data.Subject
 import com.example.data.Task
 import com.example.data.Reminder
@@ -109,7 +112,8 @@ fun DashboardScreen(
     val subjects by viewModel.subjects.collectAsStateWithLifecycle()
     val tasks by viewModel.tasks.collectAsStateWithLifecycle()
     val reminders by viewModel.reminders.collectAsStateWithLifecycle()
-    val currentPhrase by viewModel.currentPhrase.collectAsStateWithLifecycle()
+
+    val lang = com.example.ui.theme.LocalLanguage.current
 
     val pendingTasksNum = tasks.count { !it.isCompleted }
     val urgentTasksNum = tasks.count { !it.isCompleted && it.priority == "Urgente" }
@@ -117,31 +121,53 @@ fun DashboardScreen(
     val todayCalendar = Calendar.getInstance()
     val dayNameEnglish = todayCalendar.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, Locale.US) ?: ""
 
-    // Map English day in database to local day names
-    val dayMapping = mapOf(
-        "Monday" to "Lunes",
-        "Tuesday" to "Martes",
-        "Wednesday" to "Miércoles",
-        "Thursday" to "Jueves",
-        "Friday" to "Viernes",
-        "Saturday" to "Sábado",
-        "Sunday" to "Domingo"
+    // Map English day in database to local day names for database queries (using Spanish as DB key or localized match)
+    val dayMappingES = mapOf(
+        "Monday" to "Lunes", "Tuesday" to "Martes", "Wednesday" to "Miércoles", "Thursday" to "Jueves",
+        "Friday" to "Viernes", "Saturday" to "Sábado", "Sunday" to "Domingo"
     )
-    val todaySpanishDay = dayMapping[dayNameEnglish] ?: "Lunes"
+    val dayMappingEN = mapOf(
+        "Monday" to "Monday", "Tuesday" to "Tuesday", "Wednesday" to "Wednesday", "Thursday" to "Thursday",
+        "Friday" to "Friday", "Saturday" to "Saturday", "Sunday" to "Sunday"
+    )
+    val dayMappingPT = mapOf(
+        "Monday" to "Segunda-feira", "Tuesday" to "Terça-feira", "Wednesday" to "Quarta-feira", "Thursday" to "Quinta-feira",
+        "Friday" to "Sexta-feira", "Saturday" to "Sábado", "Sunday" to "Domingo"
+    )
 
-    // Today's classes filtering
-    val todaySubjects = subjects.filter { it.daysOfWeek.contains(todaySpanishDay, ignoreCase = true) }.sortedBy { it.getStartTimeMinutes() }
-
-    val isDark = isSystemInDarkTheme()
-    val bentoBorderColor = if (isDark) Color(0xFF3B2F11) else Color(0xFFFEF08A)
-    val bentoBgGradient = if (isDark) {
-        Brush.linearGradient(colors = listOf(Color(0xFF32280F), Color(0xFF1C1A16)))
-    } else {
-        Brush.linearGradient(colors = listOf(Color(0xFFFEF9C3), Color(0xFFFEF08A)))
+    val todaySpanishDay = dayMappingES[dayNameEnglish] ?: "Lunes"
+    val todayLocalizedDay = when(lang) {
+        1 -> dayMappingEN[dayNameEnglish] ?: "Monday"
+        2 -> dayMappingPT[dayNameEnglish] ?: "Segunda-feira"
+        else -> dayMappingES[dayNameEnglish] ?: "Lunes"
     }
 
-    val todayDateFormatted = SimpleDateFormat("EEEE, d 'de' MMMM", Locale("es", "ES")).format(Date())
-    val formattedDate = todayDateFormatted.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale("es", "ES")) else it.toString() }
+    // Today's classes filtering (subjects keep Spanish representation in standard fields, but matches todaySpanishDay)
+    val todaySubjects = subjects.filter { it.daysOfWeek.contains(todaySpanishDay, ignoreCase = true) }.sortedBy { it.getStartTimeMinutes() }
+
+    val isDark = LocalThemeIsDark.current
+    val bentoBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
+    val bentoBgGradient = if (isDark) {
+        Brush.linearGradient(colors = listOf(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f), MaterialTheme.colorScheme.surface))
+    } else {
+        Brush.linearGradient(colors = listOf(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f), MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)))
+    }
+
+    val dateLocale = when(lang) {
+        1 -> Locale.US
+        2 -> Locale("pt", "PT")
+        else -> Locale("es", "ES")
+    }
+    
+    val todayDateFormatted = if (lang == 1) {
+        SimpleDateFormat("EEEE, MMMM d", dateLocale).format(Date())
+    } else if (lang == 2) {
+        SimpleDateFormat("EEEE, d 'de' MMMM", dateLocale).format(Date())
+    } else {
+        SimpleDateFormat("EEEE, d 'de' MMMM", dateLocale).format(Date())
+    }
+
+    val formattedDate = todayDateFormatted.replaceFirstChar { if (it.isLowerCase()) it.titlecase(dateLocale) else it.toString() }
 
     LazyColumn(
         modifier = modifier
@@ -162,16 +188,16 @@ fun DashboardScreen(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Agenda Académica",
+                        text = "Tulipán",
                         style = MaterialTheme.typography.displaySmall.copy(
                             fontWeight = FontWeight.Bold,
-                            color = if (isDark) MaterialTheme.colorScheme.primary else Color(0xFF854D0E)
+                            color = MaterialTheme.colorScheme.primary
                         )
                     )
                     Text(
-                        text = "Hoy es $formattedDate",
+                        text = if (lang == 1) "Today is $formattedDate" else if (lang == 2) "Hoje é $formattedDate" else "Hoy es $formattedDate",
                         style = MaterialTheme.typography.bodyMedium.copy(
-                            color = if (isDark) MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f) else Color(0xFFA16207),
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
                             fontWeight = FontWeight.Medium
                         )
                     )
@@ -184,7 +210,7 @@ fun DashboardScreen(
                     IconButton(
                         onClick = onOpenThemeSelector,
                         colors = IconButtonDefaults.iconButtonColors(
-                            containerColor = if (isDark) Color(0xFF3E2D1A) else Color(0xFFFEF08A)
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer
                         ),
                         modifier = Modifier
                             .size(44.dp)
@@ -192,8 +218,8 @@ fun DashboardScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Palette,
-                            contentDescription = "Cambiar Tema",
-                            tint = if (isDark) Color(0xFFFEF08A) else Color(0xFF854D0E),
+                            contentDescription = L10n.getString("language", lang),
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -202,87 +228,15 @@ fun DashboardScreen(
                         modifier = Modifier
                             .size(44.dp)
                             .clip(CircleShape)
-                            .background(if (isDark) Color(0xFF3E2D1A) else Color(0xFFFEF08A))
+                            .background(MaterialTheme.colorScheme.secondaryContainer)
                             .border(BorderStroke(1.5.dp, Color.White), CircleShape)
                             .padding(4.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         CuteTulipCanvas(
                             modifier = Modifier.fillMaxSize(),
-                            flowerColor = if (isDark) Color(0xFFFEF08A) else Color(0xFF854D0E)
+                            flowerColor = MaterialTheme.colorScheme.primary
                         )
-                    }
-                }
-            }
-        }
-
-        // Animated Love-Note Box styled beautifully like a bento motivational quote
-        item {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(
-                        width = 1.dp,
-                        color = bentoBorderColor,
-                        shape = RoundedCornerShape(28.dp)
-                    )
-                    .shadow(
-                        elevation = 4.dp,
-                        shape = RoundedCornerShape(28.dp),
-                        ambientColor = Color(0xFFEAB308),
-                        spotColor = Color(0xFFEAB308)
-                    )
-                    .testTag("love_note_card"),
-                shape = RoundedCornerShape(28.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = if (isDark) MaterialTheme.colorScheme.surface else Color(0xFFFFFFFF).copy(alpha = 0.75f)
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(20.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.Top,
-                        horizontalArrangement = Arrangement.Start
-                    ) {
-                        Text(
-                            text = "“",
-                            fontSize = 44.sp,
-                            fontFamily = FontFamily.Serif,
-                            fontWeight = FontWeight.Bold,
-                            color = if (isDark) Color(0xFFFEF08A) else Color(0xFFEAB308),
-                            modifier = Modifier.height(32.dp).padding(end = 8.dp)
-                        )
-                        
-                        Text(
-                            text = currentPhrase,
-                            textAlign = TextAlign.Start,
-                            style = MaterialTheme.typography.bodyLarge.copy(
-                                lineHeight = 22.sp,
-                                fontWeight = FontWeight.Medium,
-                                fontStyle = FontStyle.Italic,
-                                color = if (isDark) MaterialTheme.colorScheme.onSurface else Color(0xFF713F12)
-                            ),
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    Button(
-                        onClick = { viewModel.rotatePhrase() },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (isDark) MaterialTheme.colorScheme.primary else Color(0xFF854D0E)
-                        ),
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier.testTag("rotate_phrase_button")
-                    ) {
-                        Icon(imageVector = Icons.Filled.AutoAwesome, contentDescription = null, modifier = Modifier.size(16.dp), tint = if (isDark) Color(0xFF1C1A16) else Color.White)
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text("Siguiente frase", color = if (isDark) Color(0xFF1C1A16) else Color.White, style = MaterialTheme.typography.labelLarge)
                     }
                 }
             }
@@ -317,25 +271,25 @@ fun DashboardScreen(
                             modifier = Modifier
                                 .size(40.dp)
                                 .clip(CircleShape)
-                                .background(if (isDark) Color(0xFF3E2D1A) else Color(0xFFFEF9C3)),
+                                .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = if (isDark) 0.3f else 0.7f)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.Assignment,
                                 contentDescription = null,
-                                tint = if (isDark) Color(0xFFFEF08A) else Color(0xFF713F12),
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
                                 modifier = Modifier.size(20.dp)
                             )
                         }
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
-                            text = "$pendingTasksNum Pendientes",
+                            text = "$pendingTasksNum " + L10n.getString("pending", lang),
                             fontWeight = FontWeight.Bold,
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "Tareas por entregar",
+                            text = if (lang == 1) "Incomplete tasks" else if (lang == 2) "Tarefas a entregar" else "Tareas por entregar",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
@@ -365,25 +319,25 @@ fun DashboardScreen(
                             modifier = Modifier
                                 .size(40.dp)
                                 .clip(CircleShape)
-                                .background(if (isDark) Color(0xFF3E2D1A) else Color(0xFFFEF9C3)),
+                                .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = if (isDark) 0.3f else 0.7f)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.NotificationsActive,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
                                 modifier = Modifier.size(20.dp)
                             )
                         }
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
-                            text = "${reminders.size} Activos",
+                            text = "${reminders.size} " + L10n.getString("active", lang),
                             fontWeight = FontWeight.Bold,
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "Alarmas listas",
+                            text = if (lang == 1) "Alarms configured" else if (lang == 2) "Alarmes agendados" else "Alarmas listas",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
@@ -391,10 +345,11 @@ fun DashboardScreen(
                 }
             }
         }
-              // Today's classes visual timeline overview
+
+        // Today's classes visual timeline overview
         item {
             Text(
-                text = "Materias de hoy ($todaySpanishDay)",
+                text = (if (lang == 1) "Today's classes" else if (lang == 2) "Aulas de hoje" else "Materias de hoy") + " ($todayLocalizedDay)",
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                 modifier = Modifier.padding(vertical = 4.dp)
             )
@@ -427,14 +382,14 @@ fun DashboardScreen(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "No hay materias programadas para hoy",
+                            text = if (lang == 1) "No classes scheduled for today" else if (lang == 2) "Não há aulas agendadas para hoje" else "No hay materias programadas para hoy",
                             textAlign = TextAlign.Center,
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Aproveche este tiempo para repasar los temas o adelantar tareas pendientes.",
+                            text = if (lang == 1) "Use this time to review subjects or catch up on pending tasks." else if (lang == 2) "Aproveite este tempo para estudar ou colocar tarefas em dia." else "Aproveche este tiempo para repasar los temas o adelantar tareas.",
                             textAlign = TextAlign.Center,
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
@@ -482,15 +437,17 @@ fun DashboardScreen(
                             )
                             Spacer(modifier = Modifier.height(6.dp))
                             Row(verticalAlignment = Alignment.CenterVertically) {
+                                val schLabel = if (lang == 1) "Schedule" else if (lang == 2) "Horário" else "Horario"
                                 Text(
-                                    text = "Horario: ${subject.startTime} - ${subject.endTime}",
+                                    text = "$schLabel: ${subject.startTime} - ${subject.endTime}",
                                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
                                 )
                                 if (!subject.location.isNullOrEmpty()) {
                                     Spacer(modifier = Modifier.width(12.dp))
+                                    val roomLabel = if (lang == 1) "Room" else if (lang == 2) "Sala" else "Aula"
                                     Text(
-                                        text = "Aula: ${subject.location}",
+                                        text = "$roomLabel: ${subject.location}",
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
                                     )
@@ -498,16 +455,18 @@ fun DashboardScreen(
                             }
                             if (!subject.teacherName.isNullOrEmpty()) {
                                 Spacer(modifier = Modifier.height(4.dp))
+                                val profLabel = if (lang == 1) "Professor" else if (lang == 2) "Professor" else "Profesor"
                                 Text(
-                                    text = "Profesor: ${subject.teacherName}",
+                                    text = "$profLabel: ${subject.teacherName}",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                                 )
                             }
                             if (!subject.groupName.isNullOrEmpty()) {
                                 Spacer(modifier = Modifier.height(4.dp))
+                                val grpLabel = if (lang == 1) "Group" else if (lang == 2) "Grupo" else "Grupo"
                                 Text(
-                                    text = "Grupo: ${subject.groupName}",
+                                    text = "$grpLabel: ${subject.groupName}",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                                 )
@@ -524,7 +483,7 @@ fun DashboardScreen(
             if (upcomingReminders.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Próximas alarmas activas",
+                    text = if (lang == 1) "Upcoming active alarms" else if (lang == 2) "Próximos alarmes ativos" else "Próximas alarmas activas",
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -532,7 +491,8 @@ fun DashboardScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 upcomingReminders.forEach { reminder ->
-                    val dateFormatted = SimpleDateFormat("EEEE d 'de' MMMM, HH:mm", Locale("es", "ES")).format(Date(reminder.triggerTime))
+                    val dateFormattedFormatter = if (lang == 1) SimpleDateFormat("EEEE, MMMM d, HH:mm", dateLocale) else SimpleDateFormat("EEEE d 'de' MMMM, HH:mm", dateLocale)
+                    val dateFormatted = dateFormattedFormatter.format(Date(reminder.triggerTime))
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -557,7 +517,7 @@ fun DashboardScreen(
                                 modifier = Modifier
                                     .size(36.dp)
                                     .clip(CircleShape)
-                                    .background(if (isDark) Color(0xFF3E2D1A) else Color(0xFFFEF9C3)),
+                                    .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = if (isDark) 0.3f else 0.7f)),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(

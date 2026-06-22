@@ -1,0 +1,6 @@
+{
+  "name": "Agenda Universitaria",
+  "description": "Agenda académica para la organización y seguimiento detallado de materias, tareas y recordatorios universitarios.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

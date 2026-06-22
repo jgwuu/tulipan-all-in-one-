@@ -1,0 +1,7 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:drawable="@drawable/img_vibrant_yellow_tulip_icon_1780028389041"
+        android:width="72dp"
+        android:height="72dp"
+        android:gravity="center" />
+</layer-list>

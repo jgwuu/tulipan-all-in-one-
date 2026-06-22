@@ -12,9 +12,11 @@ object L10n {
         "tab_calendario" to listOf("Calendario", "Calendar", "Calendário"),
         "tab_materias" to listOf("Materias", "Subjects", "Matérias"),
         "tab_tareas" to listOf("Tareas", "Tasks", "Tarefas"),
+        "tab_alertas" to listOf("Alarmas", "Alarms", "Alarmes"),
         "tab_alarmas" to listOf("Alarmas", "Alarms", "Alarmes"),
         
         // Header and general items
+        "new_btn" to listOf("Nuevo", "New", "Novo"),
         "today" to listOf("Hoy", "Today", "Hoje"),
         "save" to listOf("Guardar", "Save", "Salvar"),
         "delete" to listOf("Eliminar", "Delete", "Excluir"),

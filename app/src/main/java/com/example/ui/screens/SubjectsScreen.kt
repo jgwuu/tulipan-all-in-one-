@@ -28,6 +28,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.data.Subject
 import com.example.ui.viewmodel.UniversityViewModel
+import com.example.ui.theme.L10n
+import com.example.ui.theme.LocalLanguage
 import android.app.TimePickerDialog
 import androidx.compose.ui.platform.LocalContext
 import java.util.Calendar
@@ -38,9 +40,21 @@ fun SubjectsScreen(
     viewModel: UniversityViewModel,
     modifier: Modifier = Modifier
 ) {
+    val lang = LocalLanguage.current
     val subjects by viewModel.subjects.collectAsStateWithLifecycle()
     var showAddDialog by remember { mutableStateOf(false) }
     var editingSubject by remember { mutableStateOf<Subject?>(null) }
+
+    val weekdayMap = mapOf(
+        "Lunes" to listOf("Lunes", "Monday", "Segunda-feira"),
+        "Martes" to listOf("Martes", "Tuesday", "Terça-feira"),
+        "Miércoles" to listOf("Miércoles", "Wednesday", "Quarta-feira"),
+        "Jueves" to listOf("Jueves", "Thursday", "Quinta-feira"),
+        "Viernes" to listOf("Viernes", "Friday", "Sexta-feira"),
+        "Sábado" to listOf("Sábado", "Saturday", "Sábado"),
+        "Domingo" to listOf("Domingo", "Sunday", "Domingo")
+    )
+    fun getDayLabel(day: String): String = weekdayMap[day]?.get(lang) ?: day
 
     // Form states
     var name by remember { mutableStateOf("") }
@@ -96,7 +110,7 @@ fun SubjectsScreen(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Materias",
+                        text = L10n.getString("tab_materias", lang),
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onBackground
@@ -119,7 +133,7 @@ fun SubjectsScreen(
                 ) {
                     Icon(imageVector = Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Nueva")
+                    Text(if (lang == 1) "New" else if (lang == 2) "Nova" else "Nueva")
                 }
             }
         }
@@ -148,14 +162,14 @@ fun SubjectsScreen(
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
-                            text = "Aún no tienes materias agregadas",
+                            text = L10n.getString("no_subjects", lang),
                             fontWeight = FontWeight.Bold,
                             style = MaterialTheme.typography.titleMedium,
                             textAlign = TextAlign.Center
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Agrega tus materias para organizar tu horario universitario y notificaciones.",
+                            text = if (lang == 1) "Add your subjects to organize your university schedule and notifications." else if (lang == 2) "Adicione suas matérias para organizar sua grade horária e notificações." else "Agrega tus materias para organizar tu horario universitario y notificaciones.",
                             style = MaterialTheme.typography.bodyMedium,
                             textAlign = TextAlign.Center,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
@@ -171,7 +185,7 @@ fun SubjectsScreen(
                 if (dayClasses.isNotEmpty()) {
                     item {
                         Text(
-                            text = weekday,
+                            text = getDayLabel(weekday),
                             style = MaterialTheme.typography.titleMedium.copy(
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f)
@@ -218,27 +232,27 @@ fun SubjectsScreen(
                                     )
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Text(
-                                        text = "Horario: ${subject.startTime} - ${subject.endTime}",
+                                        text = (if (lang == 1) "Schedule" else if (lang == 2) "Horário" else "Horario") + ": ${subject.startTime} - ${subject.endTime}",
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
                                     )
                                     if (!subject.location.isNullOrEmpty()) {
                                         Text(
-                                            text = "Aula: ${subject.location}",
+                                            text = (if (lang == 1) "Room" else if (lang == 2) "Sala" else "Aula") + ": ${subject.location}",
                                             style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                                         )
                                     }
                                     if (!subject.teacherName.isNullOrEmpty()) {
                                         Text(
-                                            text = "Profesor: ${subject.teacherName}",
+                                            text = (if (lang == 1) "Professor" else if (lang == 2) "Professor" else "Profesor") + ": ${subject.teacherName}",
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                                         )
                                     }
                                     if (!subject.groupName.isNullOrEmpty()) {
                                         Text(
-                                            text = "Grupo: ${subject.groupName}",
+                                            text = (if (lang == 1) "Group" else if (lang == 2) "Grupo" else "Grupo") + ": ${subject.groupName}",
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                                         )
@@ -307,19 +321,19 @@ fun SubjectsScreen(
                     },
                     modifier = Modifier.testTag("dialog_confirm_btn")
                 ) {
-                    Text("Guardar", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
+                    Text(L10n.getString("save", lang), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showAddDialog = false }) {
-                    Text("Cancelar", color = Color.Gray)
+                    Text(L10n.getString("cancel", lang), color = Color.Gray)
                 }
             },
             title = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(imageVector = Icons.Filled.School, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Agregar Nueva Materia 📚")
+                    Text(L10n.getString("add_subject", lang) + " 📚")
                 }
             },
             text = {
@@ -333,7 +347,7 @@ fun SubjectsScreen(
                     OutlinedTextField(
                         value = name,
                         onValueChange = { name = it },
-                        label = { Text("Nombre de la materia *") },
+                        label = { Text(L10n.getString("subject_name", lang) + " *") },
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag("subject_input_name"),
@@ -343,7 +357,7 @@ fun SubjectsScreen(
                     OutlinedTextField(
                         value = teacherName,
                         onValueChange = { teacherName = it },
-                        label = { Text("Profesor (opcional)") },
+                        label = { Text(L10n.getString("professor", lang) + (if (lang == 1) " (optional)" else " (opcional)")) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp)
                     )
@@ -351,7 +365,7 @@ fun SubjectsScreen(
                     OutlinedTextField(
                         value = location,
                         onValueChange = { location = it },
-                        label = { Text("Aula u Ubicación (opcional)") },
+                        label = { Text(L10n.getString("classroom", lang) + (if (lang == 1) " (optional)" else " (opcional)")) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp)
                     )
@@ -359,7 +373,7 @@ fun SubjectsScreen(
                     OutlinedTextField(
                         value = groupName,
                         onValueChange = { groupName = it },
-                        label = { Text("Grupo o Sección (opcional)") },
+                        label = { Text(L10n.getString("study_group", lang)) },
                         modifier = Modifier.fillMaxWidth().testTag("subject_input_group"),
                         shape = RoundedCornerShape(12.dp)
                     )
@@ -370,13 +384,13 @@ fun SubjectsScreen(
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         InteractiveTimeField(
-                            label = "Inicio",
+                            label = L10n.getString("start_time", lang),
                             value = startTime,
                             onValueChange = { startTime = it },
                             modifier = Modifier.weight(1f)
                         )
                         InteractiveTimeField(
-                            label = "Fin",
+                            label = L10n.getString("end_time", lang),
                             value = endTime,
                             onValueChange = { endTime = it },
                             modifier = Modifier.weight(1f)
@@ -385,7 +399,7 @@ fun SubjectsScreen(
 
                     // Choose Days flow checkbox selector
                     Text(
-                        text = "Días de la semana *",
+                        text = L10n.getString("selected_days", lang) + " *",
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
@@ -403,7 +417,7 @@ fun SubjectsScreen(
                                 onClick = {
                                     if (isSelected) selectedDays.remove(dayName) else selectedDays.add(dayName)
                                 },
-                                label = { Text(dayName) },
+                                label = { Text(getDayLabel(dayName)) },
                                 shape = RoundedCornerShape(10.dp)
                             )
                         }
@@ -411,7 +425,7 @@ fun SubjectsScreen(
 
                     // Select aesthetic color hex code swatches
                     Text(
-                        text = "Color de identificación 🎨",
+                        text = if (lang == 1) "Identification Color 🎨" else if (lang == 2) "Cor de identificação 🎨" else "Color de identificación 🎨",
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
@@ -480,19 +494,19 @@ fun SubjectsScreen(
                     },
                     modifier = Modifier.testTag("edit_dialog_confirm_btn")
                 ) {
-                    Text("Guardar", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
+                    Text(L10n.getString("save", lang), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { editingSubject = null }) {
-                    Text("Cancelar", color = Color.Gray)
+                    Text(L10n.getString("cancel", lang), color = Color.Gray)
                 }
             },
             title = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(imageVector = Icons.Filled.Edit, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Modificar Materia 📚")
+                    Text(L10n.getString("edit_subject", lang) + " 📚")
                 }
             },
             text = {
@@ -506,7 +520,7 @@ fun SubjectsScreen(
                     OutlinedTextField(
                         value = editName,
                         onValueChange = { editName = it },
-                        label = { Text("Nombre de la materia *") },
+                        label = { Text(L10n.getString("subject_name", lang) + " *") },
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag("edit_subject_input_name"),
@@ -516,7 +530,7 @@ fun SubjectsScreen(
                     OutlinedTextField(
                         value = editTeacherName,
                         onValueChange = { editTeacherName = it },
-                        label = { Text("Profesor (opcional)") },
+                        label = { Text(L10n.getString("professor", lang) + (if (lang == 1) " (optional)" else " (opcional)")) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp)
                     )
@@ -524,7 +538,7 @@ fun SubjectsScreen(
                     OutlinedTextField(
                         value = editLocation,
                         onValueChange = { editLocation = it },
-                        label = { Text("Aula u Ubicación (opcional)") },
+                        label = { Text(L10n.getString("classroom", lang) + (if (lang == 1) " (optional)" else " (opcional)")) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp)
                     )
@@ -532,7 +546,7 @@ fun SubjectsScreen(
                     OutlinedTextField(
                         value = editGroupName,
                         onValueChange = { editGroupName = it },
-                        label = { Text("Grupo o Sección (opcional)") },
+                        label = { Text(L10n.getString("study_group", lang)) },
                         modifier = Modifier.fillMaxWidth().testTag("edit_subject_input_group"),
                         shape = RoundedCornerShape(12.dp)
                     )
@@ -543,13 +557,13 @@ fun SubjectsScreen(
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         InteractiveTimeField(
-                            label = "Inicio",
+                            label = L10n.getString("start_time", lang),
                             value = editStartTime,
                             onValueChange = { editStartTime = it },
                             modifier = Modifier.weight(1f)
                         )
                         InteractiveTimeField(
-                            label = "Fin",
+                            label = L10n.getString("end_time", lang),
                             value = editEndTime,
                             onValueChange = { editEndTime = it },
                             modifier = Modifier.weight(1f)
@@ -558,7 +572,7 @@ fun SubjectsScreen(
 
                     // Choose Days flow checkbox selector
                     Text(
-                        text = "Días de la semana *",
+                        text = L10n.getString("selected_days", lang) + " *",
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
@@ -576,7 +590,7 @@ fun SubjectsScreen(
                                 onClick = {
                                     if (isSelected) editSelectedDays.remove(dayName) else editSelectedDays.add(dayName)
                                 },
-                                label = { Text(dayName) },
+                                label = { Text(getDayLabel(dayName)) },
                                 shape = RoundedCornerShape(10.dp)
                             )
                         }
@@ -584,7 +598,7 @@ fun SubjectsScreen(
 
                     // Select aesthetic color hex code swatches
                     Text(
-                        text = "Color de identificación 🎨",
+                        text = if (lang == 1) "Identification Color 🎨" else if (lang == 2) "Cor de identificação 🎨" else "Color de identificación 🎨",
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)

@@ -26,6 +26,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ui.theme.LocalThemeIsDark
+import com.example.ui.theme.LocalLanguage
+import com.example.ui.theme.L10n
 import com.example.ui.viewmodel.UniversityViewModel
 
 @Composable
@@ -99,6 +101,7 @@ fun StatsScreen(
     viewModel: UniversityViewModel,
     modifier: Modifier = Modifier
 ) {
+    val lang = LocalLanguage.current
     val subjects by viewModel.subjects.collectAsStateWithLifecycle()
     val tasks by viewModel.tasks.collectAsStateWithLifecycle()
     val reminders by viewModel.reminders.collectAsStateWithLifecycle()
@@ -136,7 +139,7 @@ fun StatsScreen(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Resumen de Progreso",
+                    text = if (lang == 1) "Progress Overview" else if (lang == 2) "Visão Geral do Progresso" else "Resumen de Progreso",
                     style = MaterialTheme.typography.headlineMedium.copy(
                         fontWeight = FontWeight.Bold,
                         color = if (isDark) MaterialTheme.colorScheme.onBackground else Color(0xFF1F2937)
@@ -167,13 +170,13 @@ fun StatsScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "Flor de la Constancia",
+                        text = if (lang == 1) "Flower of Consistency" else if (lang == 2) "Flor da Constância" else "Flor de la Constancia",
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "Visualización del cumplimiento de tareas",
+                        text = if (lang == 1) "Visualization of task completion" else if (lang == 2) "Visualização do cumprimento de tarefas" else "Visualización del cumplimiento de tareas",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                     )
@@ -190,18 +193,18 @@ fun StatsScreen(
                     Spacer(modifier = Modifier.height(14.dp))
 
                     Text(
-                        text = "$displayPercent% de tareas completadas",
+                        text = "$displayPercent% " + (if (lang == 1) "of tasks completed" else if (lang == 2) "das tarefas concluídas" else "de tareas completadas"),
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.titleMedium,
                         color = if (isDark) MaterialTheme.colorScheme.primary else Color(0xFF1F2937)
                     )
 
                     val flowerMsg = when {
-                        totalTasks == 0 -> "Registre tareas para comenzar a visualizar su progreso."
-                        completionRatio == 1.0f -> "Cumplimiento completo. Todas las tareas registradas han sido finalizadas."
-                        completionRatio >= 0.7f -> "Progreso alto. La mayoría de las tareas están completas."
-                        completionRatio >= 0.4f -> "Progreso medio. Se registra un avance regular."
-                        else -> "Progreso inicial. Continúe completando las tareas pendientes."
+                        totalTasks == 0 -> if (lang == 1) "Register tasks to start visualizing your progress." else if (lang == 2) "Registre tarefas para começar a visualizar seu progresso." else "Registre tareas para comenzar a visualizar su progreso."
+                        completionRatio == 1.0f -> if (lang == 1) "Full compliance. All registered tasks have been completed." else if (lang == 2) "Cumprimento total. Todas as tarefas registradas foram concluídas." else "Cumplimiento completo. Todas las tareas registradas han sido finalizadas."
+                        completionRatio >= 0.7f -> if (lang == 1) "High progress. Most tasks are complete." else if (lang == 2) "Progresso alto. A maioria das tarefas estão concluídas." else "Progreso alto. La mayoría de las tareas están completas."
+                        completionRatio >= 0.4f -> if (lang == 1) "Medium progress. Regular advancement is recorded." else if (lang == 2) "Progresso médio. Um avanço regular é registrado." else "Progreso medio. Se registra un avance regular."
+                        else -> if (lang == 1) "Initial progress. Continue completing pending tasks." else if (lang == 2) "Progresso inicial. Continue concluindo as tarefas pendentes." else "Progreso inicial. Continúe completando las tareas pendientes."
                     }
 
                     Text(
@@ -240,7 +243,7 @@ fun StatsScreen(
                         Icon(imageVector = Icons.Filled.School, contentDescription = null, tint = if (isDark) MaterialTheme.colorScheme.primary else Color(0xFF854D0E))
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(text = "$totalSubjects", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
-                        Text(text = "Materias", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                        Text(text = if (lang == 1) "Subjects" else if (lang == 2) "Matérias" else "Materias", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
                     }
                 }
 
@@ -263,7 +266,7 @@ fun StatsScreen(
                         Icon(imageVector = Icons.Filled.Assignment, contentDescription = null, tint = Color(0xFFF9A825))
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(text = "$pendingTasksNum", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
-                        Text(text = "Pendientes", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                        Text(text = if (lang == 1) "Pending" else if (lang == 2) "Pendentes" else "Pendientes", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
                     }
                 }
             }
@@ -293,7 +296,7 @@ fun StatsScreen(
                         Icon(imageVector = Icons.Filled.CheckCircle, contentDescription = null, tint = Color(0xFF81C784))
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(text = "$completedTasksNum", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
-                        Text(text = "Completadas", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                        Text(text = if (lang == 1) "Completed" else if (lang == 2) "Concluídas" else "Completadas", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
                     }
                 }
 
@@ -316,7 +319,7 @@ fun StatsScreen(
                         Icon(imageVector = Icons.Filled.NotificationsActive, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(text = "${reminders.size}", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
-                        Text(text = "Alarmas", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                        Text(text = if (lang == 1) "Alarms" else if (lang == 2) "Alarmes" else "Alarmas", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
                     }
                 }
             }
@@ -347,7 +350,7 @@ fun StatsScreen(
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "La constancia en las tareas diarias contribuye de manera significativa al cumplimiento de los objetivos académicos.",
+                        text = if (lang == 1) "Consistency in daily tasks contributes significantly to achieving academic goals." else if (lang == 2) "A consistência nas tarefas diárias contribui significativamente para o cumprimento dos objetivos acadêmicos." else "La constancia en las tareas diarias contribuye de manera significativa al cumplimiento de los objetivos académicos.",
                         style = MaterialTheme.typography.bodyMedium.copy(
                             fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onSurface

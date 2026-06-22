@@ -33,6 +33,8 @@ import com.example.data.Task
 import com.example.ui.viewmodel.UniversityViewModel
 import com.example.ui.theme.LocalThemeIsDark
 import com.example.ui.theme.TulipYellowPrimary
+import com.example.ui.theme.L10n
+import com.example.ui.theme.LocalLanguage
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.basicMarquee
@@ -47,6 +49,24 @@ fun CalendarScreen(
     viewModel: UniversityViewModel,
     modifier: Modifier = Modifier
 ) {
+    val lang = LocalLanguage.current
+    val locale = when(lang) {
+        1 -> Locale("en", "US")
+        2 -> Locale("pt", "BR")
+        else -> Locale("es", "ES")
+    }
+
+    val weekdayMap = mapOf(
+        "Lunes" to listOf("Lunes", "Monday", "Segunda-feira"),
+        "Martes" to listOf("Martes", "Tuesday", "Terça-feira"),
+        "Miércoles" to listOf("Miércoles", "Wednesday", "Quarta-feira"),
+        "Jueves" to listOf("Jueves", "Thursday", "Quinta-feira"),
+        "Viernes" to listOf("Viernes", "Friday", "Sexta-feira"),
+        "Sábado" to listOf("Sábado", "Saturday", "Sábado"),
+        "Domingo" to listOf("Domingo", "Sunday", "Domingo")
+    )
+    fun getDayLabel(day: String): String = weekdayMap[day]?.get(lang) ?: day
+
     val subjects by viewModel.subjects.collectAsStateWithLifecycle()
     val tasks by viewModel.tasks.collectAsStateWithLifecycle()
     val reminders by viewModel.reminders.collectAsStateWithLifecycle()
@@ -58,7 +78,7 @@ fun CalendarScreen(
 
     var currentMonthCalendar by remember { mutableStateOf(Calendar.getInstance()) }
 
-    val sdfMonthYear = SimpleDateFormat("MMMM yyyy", Locale("es", "ES"))
+    val sdfMonthYear = SimpleDateFormat("MMMM yyyy", locale)
     val displayedMonthName = sdfMonthYear.format(currentMonthCalendar.time)
         .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
 
@@ -123,9 +143,14 @@ fun CalendarScreen(
                 cal1.get(Calendar.DAY_OF_MONTH) == cal2.get(Calendar.DAY_OF_MONTH)
     }
 
-    // Map selected day names
-    val selectedDayOfWeekName = selectedDayCalendar.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, Locale("es", "ES")) ?: "Lunes"
-    val formattedSelectedDateHeader = SimpleDateFormat("dd 'de' MMMM, yyyy", Locale("es", "ES")).format(selectedDayCalendar.time)
+    // selected day name in Spanish for database queries
+    val databaseDayOfWeekName = selectedDayCalendar.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, Locale("es", "ES")) ?: "Lunes"
+    val displayDayOfWeekName = selectedDayCalendar.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, locale) ?: ""
+    val formattedSelectedDateHeader = when(lang) {
+        1 -> SimpleDateFormat("MMMM dd, yyyy", locale).format(selectedDayCalendar.time)
+        2 -> SimpleDateFormat("dd 'de' MMMM 'de' yyyy", locale).format(selectedDayCalendar.time)
+        else -> SimpleDateFormat("dd 'de' MMMM, yyyy", locale).format(selectedDayCalendar.time)
+    }
 
     // Filter events for the exact selected date
     val dayTasks = tasks.filter { isSameDay(it.deadlineDate, selectedDayCalendar) }
@@ -133,7 +158,7 @@ fun CalendarScreen(
 
     // Subject frequency lookup for selected weekday name
     val daySubjects = subjects.filter {
-        it.daysOfWeek.contains(selectedDayOfWeekName, ignoreCase = true)
+        it.daysOfWeek.contains(databaseDayOfWeekName, ignoreCase = true)
     }.sortedBy { it.getStartTimeMinutes() }
 
     LazyColumn(
@@ -158,7 +183,7 @@ fun CalendarScreen(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Calendario Universitario",
+                    text = L10n.getString("tab_calendario", lang),
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onBackground
@@ -233,7 +258,11 @@ fun CalendarScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        val localDaysShort = listOf("Lu", "Ma", "Mi", "Ju", "Vi", "Sá", "Do")
+                        val localDaysShort = when(lang) {
+                            1 -> listOf("Mo", "Tu", "We", "Th", "Fr", "Sa", "Su")
+                            2 -> listOf("Se", "Te", "Qu", "Qi", "Se", "Sa", "Do")
+                            else -> listOf("Lu", "Ma", "Mi", "Ju", "Vi", "Sá", "Do")
+                        }
                         localDaysShort.forEach { dayLabel ->
                             Text(
                                 text = dayLabel,
@@ -378,7 +407,7 @@ fun CalendarScreen(
         // Selected Date Agenda Detail Box Header
         item {
             Text(
-                text = "Agenda del $selectedDayOfWeekName, $formattedSelectedDateHeader 🌸",
+                text = "${if (lang == 1) "Agenda for" else if (lang == 2) "Agenda de" else "Agenda del"} $displayDayOfWeekName, $formattedSelectedDateHeader 🌸",
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                 modifier = Modifier.padding(vertical = 4.dp).testTag("calendar_selected_header")
             )
@@ -407,7 +436,7 @@ fun CalendarScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "Sin pendientes programados",
+                            text = if (lang == 1) "No scheduled items" else if (lang == 2) "Sem compromissos agendados" else "Sin pendientes programados",
                             textAlign = TextAlign.Center,
                             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurface
@@ -421,7 +450,7 @@ fun CalendarScreen(
         if (daySubjects.isNotEmpty()) {
             item {
                 Text(
-                    text = "Clases y Materias",
+                    text = if (lang == 1) "Classes and Subjects" else if (lang == 2) "Aulas e Matérias" else "Clases y Materias",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f)
@@ -583,7 +612,7 @@ fun CalendarScreen(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Edit,
-                                    contentDescription = "Editar clase",
+                                    contentDescription = if (lang == 1) "Edit subject" else if (lang == 2) "Editar matéria" else "Editar clase",
                                     tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(20.dp)
                                 )
@@ -594,7 +623,7 @@ fun CalendarScreen(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.DeleteOutline,
-                                    contentDescription = "Eliminar clase",
+                                    contentDescription = if (lang == 1) "Delete subject" else if (lang == 2) "Excluir matéria" else "Eliminar clase",
                                     tint = MaterialTheme.colorScheme.tertiary,
                                     modifier = Modifier.size(20.dp)
                                 )
@@ -609,7 +638,7 @@ fun CalendarScreen(
         if (dayTasks.isNotEmpty()) {
             item {
                 Text(
-                    text = "Tareas por entregar 📚",
+                    text = if (lang == 1) "Tasks to submit 📚" else if (lang == 2) "Tarefas para entregar 📚" else "Tareas por entregar 📚",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f)
@@ -661,6 +690,11 @@ fun CalendarScreen(
                                 "Normal" -> Color(0xFFFFD54F)
                                 else -> Color(0xFFB3E5FC)
                             }
+                            val translatedPriority = when (task.priority) {
+                                "Urgente" -> if (lang == 1) "Urgent" else "Urgente"
+                                "Normal" -> "Normal"
+                                else -> if (lang == 1) "Low" else if (lang == 2) "Baixa" else "Baja"
+                            }
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(8.dp))
@@ -668,7 +702,7 @@ fun CalendarScreen(
                                     .padding(horizontal = 8.dp, vertical = 4.dp)
                             ) {
                                 Text(
-                                    text = task.priority,
+                                    text = translatedPriority,
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = if (task.priority == "Urgente") Color.Red else Color.DarkGray
@@ -717,7 +751,7 @@ fun CalendarScreen(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Edit,
-                                        contentDescription = "Editar tarea",
+                                        contentDescription = if (lang == 1) "Edit task" else if (lang == 2) "Editar tarefa" else "Editar tarea",
                                         tint = MaterialTheme.colorScheme.primary,
                                         modifier = Modifier.size(20.dp)
                                     )
@@ -728,7 +762,7 @@ fun CalendarScreen(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.DeleteOutline,
-                                        contentDescription = "Eliminar tarea",
+                                        contentDescription = if (lang == 1) "Delete task" else if (lang == 2) "Excluir tarefa" else "Eliminar tarea",
                                         tint = MaterialTheme.colorScheme.tertiary,
                                         modifier = Modifier.size(20.dp)
                                     )
@@ -858,19 +892,19 @@ fun CalendarScreen(
                     },
                     modifier = Modifier.testTag("cal_edit_subject_dialog_confirm")
                 ) {
-                    Text("Guardar", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
+                    Text(L10n.getString("save", lang), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { editingSubject = null }) {
-                    Text("Cancelar", color = Color.Gray)
+                    Text(L10n.getString("cancel", lang), color = Color.Gray)
                 }
             },
             title = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(imageVector = Icons.Filled.Edit, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Modificar Materia 📚")
+                    Text(L10n.getString("edit_subject", lang) + " 📚")
                 }
             },
             text = {
@@ -884,7 +918,7 @@ fun CalendarScreen(
                     OutlinedTextField(
                         value = editName,
                         onValueChange = { editName = it },
-                        label = { Text("Nombre de la materia *") },
+                        label = { Text(L10n.getString("subject_name", lang) + " *") },
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag("cal_edit_subject_input_name"),
@@ -894,7 +928,7 @@ fun CalendarScreen(
                     OutlinedTextField(
                         value = editTeacherName,
                         onValueChange = { editTeacherName = it },
-                        label = { Text("Profesor (opcional)") },
+                        label = { Text(L10n.getString("professor", lang) + (if (lang == 1) " (optional)" else " (opcional)")) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp)
                     )
@@ -902,7 +936,7 @@ fun CalendarScreen(
                     OutlinedTextField(
                         value = editLocation,
                         onValueChange = { editLocation = it },
-                        label = { Text("Aula u Ubicación (opcional)") },
+                        label = { Text(L10n.getString("classroom", lang) + (if (lang == 1) " (optional)" else " (opcional)")) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp)
                     )
@@ -910,7 +944,7 @@ fun CalendarScreen(
                     OutlinedTextField(
                         value = editGroupName,
                         onValueChange = { editGroupName = it },
-                        label = { Text("Grupo o Sección (opcional)") },
+                        label = { Text(L10n.getString("study_group", lang)) },
                         modifier = Modifier.fillMaxWidth().testTag("cal_edit_subject_input_group"),
                         shape = RoundedCornerShape(12.dp)
                     )
@@ -921,13 +955,13 @@ fun CalendarScreen(
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         InteractiveTimeField(
-                            label = "Inicio",
+                            label = L10n.getString("start_time", lang),
                             value = editStartTime,
                             onValueChange = { editStartTime = it },
                             modifier = Modifier.weight(1f)
                         )
                         InteractiveTimeField(
-                            label = "Fin",
+                            label = L10n.getString("end_time", lang),
                             value = editEndTime,
                             onValueChange = { editEndTime = it },
                             modifier = Modifier.weight(1f)
@@ -936,7 +970,7 @@ fun CalendarScreen(
 
                     // Choose Days flow checkbox selector
                     Text(
-                        text = "Días de la semana *",
+                        text = L10n.getString("selected_days", lang) + " *",
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
@@ -954,7 +988,7 @@ fun CalendarScreen(
                                 onClick = {
                                     if (isSelected) editSelectedDays.remove(dayName) else editSelectedDays.add(dayName)
                                 },
-                                label = { Text(dayName) },
+                                label = { Text(getDayLabel(dayName)) },
                                 shape = RoundedCornerShape(10.dp)
                             )
                         }
@@ -962,7 +996,7 @@ fun CalendarScreen(
 
                     // Select aesthetic color hex code swatches
                     Text(
-                        text = "Color de identificación 🎨",
+                        text = if (lang == 1) "Identification Color 🎨" else if (lang == 2) "Cor de identificação 🎨" else "Color de identificación 🎨",
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
@@ -1023,19 +1057,19 @@ fun CalendarScreen(
                     },
                     modifier = Modifier.testTag("cal_edit_task_confirm")
                 ) {
-                    Text("Guardar", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
+                    Text(L10n.getString("save", lang), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { editingTask = null }) {
-                    Text("Cancelar", color = Color.Gray)
+                    Text(L10n.getString("cancel", lang), color = Color.Gray)
                 }
             },
             title = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(imageVector = Icons.Filled.Edit, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Modificar Tarea 📚")
+                    Text(if (lang == 1) "Edit Task 📚" else if (lang == 2) "Editar Tarefa 📚" else "Modificar Tarea 📚")
                 }
             },
             text = {
@@ -1049,7 +1083,7 @@ fun CalendarScreen(
                     OutlinedTextField(
                         value = editTitle,
                         onValueChange = { editTitle = it },
-                        label = { Text("Título de la tarea *") },
+                        label = { Text(if (lang == 1) "Task Title *" else if (lang == 2) "Título da tarefa *" else "Título de la tarea *") },
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag("cal_edit_task_input_title"),
@@ -1059,7 +1093,7 @@ fun CalendarScreen(
                     OutlinedTextField(
                         value = editDesc,
                         onValueChange = { editDesc = it },
-                        label = { Text("Instrucciones / Notas (opcional)") },
+                        label = { Text(if (lang == 1) "Instructions / Notes (optional)" else if (lang == 2) "Instruções / Notas (opcional)" else "Instrucciones / Notas (opcional)") },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         maxLines = 3
@@ -1067,7 +1101,7 @@ fun CalendarScreen(
 
                     // Priority levels RadioButtons
                     Text(
-                        text = "Prioridad de entrega",
+                        text = if (lang == 1) "Submission Priority" else if (lang == 2) "Prioridade de entrega" else "Prioridad de entrega",
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
@@ -1092,6 +1126,12 @@ fun CalendarScreen(
                             }
                             val borderAccent = if (isSelected) TulipYellowPrimary else Color.Transparent
 
+                            val translatedPrioLabel = when (prio) {
+                                "Urgente" -> if (lang == 1) "Urgent" else "Urgente"
+                                "Normal" -> "Normal"
+                                else -> if (lang == 1) "Low" else if (lang == 2) "Secundária" else "Secundaria"
+                            }
+
                             Box(
                                 modifier = Modifier
                                     .weight(1f)
@@ -1107,7 +1147,7 @@ fun CalendarScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = prio,
+                                    text = translatedPrioLabel,
                                     fontSize = 12.sp,
                                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                                     color = if (isSelected) prioTextColor else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
@@ -1118,7 +1158,7 @@ fun CalendarScreen(
 
                     // Links to subject optionally
                     Text(
-                        text = "Vincular a una Materia (opcional)",
+                        text = if (lang == 1) "Link to a Subject (optional)" else if (lang == 2) "Vincular a uma Matéria (opcional)" else "Vincular a una Materia (opcional)",
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
@@ -1126,7 +1166,7 @@ fun CalendarScreen(
 
                     if (subjects.isEmpty()) {
                         Text(
-                            text = "No tienes materias creadas aún para vincular.",
+                            text = if (lang == 1) "You don't have subjects created yet to link." else if (lang == 2) "Você ainda não tem matérias criadas para vincular." else "No tienes materias creadas aún para vincular.",
                             fontSize = 12.sp,
                             color = Color.Gray
                         )
@@ -1140,7 +1180,7 @@ fun CalendarScreen(
                             FilterChip(
                                 selected = editSubjectId == null,
                                 onClick = { editSubjectId = null },
-                                label = { Text("Ninguna") }
+                                label = { Text(if (lang == 1) "None" else if (lang == 2) "Nenhuma" else "Ninguna") }
                             )
 
                             subjects.forEach { subject ->
@@ -1165,13 +1205,13 @@ fun CalendarScreen(
 
                     // Date Selection selection
                     Text(
-                        text = "Fecha de Entrega",
+                        text = if (lang == 1) "Due Date" else if (lang == 2) "Data de entrega" else "Fecha de Entrega",
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
 
-                    val activeFormattedDeadline = SimpleDateFormat("EEEE dd/MM/yyyy", Locale("es", "ES")).format(Date(editDeadlineMillis))
+                    val activeFormattedDeadline = SimpleDateFormat("EEEE dd/MM/yyyy", locale).format(Date(editDeadlineMillis))
                     val calendar = Calendar.getInstance().apply { timeInMillis = editDeadlineMillis }
                     val datePickerDialog = android.app.DatePickerDialog(
                         context,

@@ -35,6 +35,8 @@ import com.example.ui.viewmodel.UniversityViewModel
 import androidx.compose.foundation.isSystemInDarkTheme
 import com.example.ui.theme.LocalThemeIsDark
 import com.example.ui.theme.TulipYellowPrimary
+import com.example.ui.theme.L10n
+import com.example.ui.theme.LocalLanguage
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -44,6 +46,7 @@ fun TasksScreen(
     viewModel: UniversityViewModel,
     modifier: Modifier = Modifier
 ) {
+    val lang = LocalLanguage.current
     val context = LocalContext.current
     val subjects by viewModel.subjects.collectAsStateWithLifecycle()
     val tasks by viewModel.tasks.collectAsStateWithLifecycle()
@@ -100,7 +103,7 @@ fun TasksScreen(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Mis Pendientes 📚",
+                        text = L10n.getString("tab_tareas", lang) + " 📚",
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onBackground
@@ -123,7 +126,7 @@ fun TasksScreen(
                 ) {
                     Icon(imageVector = Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Nueva")
+                    Text(L10n.getString("new_btn", lang))
                 }
             }
         }
@@ -139,10 +142,16 @@ fun TasksScreen(
             ) {
                 filterOptions.forEach { filter ->
                     val isSelected = selectedFilter == filter
+                    val filterLabel = when (filter) {
+                        "Pendientes" -> if (lang == 1) "Pending" else if (lang == 2) "Pendentes" else "Pendientes"
+                        "Completadas" -> if (lang == 1) "Completed" else if (lang == 2) "Concluídas" else "Completadas"
+                        "Urgentes" -> if (lang == 1) "Urgent" else "Urgentes"
+                        else -> if (lang == 1) "All" else if (lang == 2) "Todas" else "Todas"
+                    }
                     FilterChip(
                         selected = isSelected,
                         onClick = { selectedFilter = filter },
-                        label = { Text(filter) },
+                        label = { Text(filterLabel) },
                         modifier = Modifier.testTag("filter_chip_$filter"),
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -180,13 +189,13 @@ fun TasksScreen(
                         )
                         Spacer(modifier = Modifier.height(10.dp))
                         Text(
-                            text = "No se encontraron tareas",
+                            text = if (lang == 1) "No tasks found" else if (lang == 2) "Nenhuma tarefa encontrada" else "No se encontraron tareas",
                             fontWeight = FontWeight.Bold,
                             style = MaterialTheme.typography.titleMedium
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "No hay tareas registradas que coincidan con el filtro seleccionado.",
+                            text = if (lang == 1) "There are no registered tasks that match the selected filter." else if (lang == 2) "Não há tarefas cadastradas que correspondam ao filtro selecionado." else "No hay tareas registradas que coincidan con el filtro seleccionado.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                             textAlign = TextAlign.Center
@@ -197,7 +206,17 @@ fun TasksScreen(
         } else {
             items(filteredTasks, key = { it.id }) { task ->
                 val associatedSubject = subjects.find { it.id == task.subjectId }
-                val dateStr = SimpleDateFormat("dd 'de' MMMM, yyyy", Locale("es", "ES")).format(Date(task.deadlineDate))
+                val dateLocale = when (lang) {
+                    1 -> Locale("en", "US")
+                    2 -> Locale("pt", "BR")
+                    else -> Locale("es", "ES")
+                }
+                val datePattern = when (lang) {
+                    1 -> "MMMM dd, yyyy"
+                    2 -> "dd 'de' MMMM 'de' yyyy"
+                    else -> "dd 'de' MMMM, yyyy"
+                }
+                val dateStr = SimpleDateFormat(datePattern, dateLocale).format(Date(task.deadlineDate))
 
                 val isDark = LocalThemeIsDark.current
                 val bentoBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
@@ -233,7 +252,7 @@ fun TasksScreen(
                             ) {
                                 Icon(
                                     imageVector = if (task.isCompleted) Icons.Filled.CheckCircle else Icons.Filled.RadioButtonUnchecked,
-                                    contentDescription = "Cambiar estado",
+                                    contentDescription = if (lang == 1) "Change status" else if (lang == 2) "Alterar status" else "Cambiar estado",
                                     tint = if (task.isCompleted) Color(0xFF81C784) else Color.Gray,
                                     modifier = Modifier
                                         .size(24.dp)
@@ -255,7 +274,7 @@ fun TasksScreen(
                                         color = if (task.isCompleted) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f) else MaterialTheme.colorScheme.onSurface
                                     )
                                     Text(
-                                        text = "📅 Entrega: $dateStr",
+                                        text = "📅 " + (if (lang == 1) "Due: " else if (lang == 2) "Entrega: " else "Entrega: ") + dateStr,
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                                     )
@@ -275,6 +294,11 @@ fun TasksScreen(
                                     "Normal" -> MaterialTheme.colorScheme.onPrimaryContainer
                                     else -> MaterialTheme.colorScheme.onSecondaryContainer
                                 }
+                                val translatedPrio = when (task.priority) {
+                                    "Urgente" -> if (lang == 1) "Urgent" else "Urgente"
+                                    "Normal" -> "Normal"
+                                    else -> if (lang == 1) "Low" else if (lang == 2) "Secundária" else "Secundaria"
+                                }
 
                                 Box(
                                     modifier = Modifier
@@ -283,7 +307,7 @@ fun TasksScreen(
                                         .padding(horizontal = 8.dp, vertical = 4.dp)
                                 ) {
                                     Text(
-                                        text = task.priority,
+                                        text = translatedPrio,
                                         fontSize = 11.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = badgeText
@@ -298,7 +322,7 @@ fun TasksScreen(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Filled.Edit,
-                                        contentDescription = "Editar tarea",
+                                        contentDescription = if (lang == 1) "Edit task" else if (lang == 2) "Editar tarefa" else "Editar tarea",
                                         tint = MaterialTheme.colorScheme.primary,
                                         modifier = Modifier.size(20.dp)
                                     )
@@ -312,7 +336,7 @@ fun TasksScreen(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Filled.DeleteOutline,
-                                        contentDescription = "Eliminar tarea",
+                                        contentDescription = if (lang == 1) "Delete task" else if (lang == 2) "Excluir tarefa" else "Eliminar tarea",
                                         tint = MaterialTheme.colorScheme.tertiary,
                                         modifier = Modifier.size(20.dp)
                                     )
@@ -379,7 +403,7 @@ fun TasksScreen(
                                         )
                                         Spacer(modifier = Modifier.width(4.dp))
                                         Text(
-                                            text = "Adjuntar materia",
+                                            text = if (lang == 1) "Attach subject" else if (lang == 2) "Vincular matéria" else "Adjuntar materia",
                                             fontSize = 11.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = MaterialTheme.colorScheme.primary
@@ -421,19 +445,19 @@ fun TasksScreen(
                     },
                     modifier = Modifier.testTag("dialog_confirm_btn")
                 ) {
-                    Text("Guardar", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
+                    Text(L10n.getString("save", lang), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showAddTaskDialog = false }) {
-                    Text("Cancelar", color = Color.Gray)
+                    Text(L10n.getString("cancel", lang), color = Color.Gray)
                 }
             },
             title = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(imageVector = Icons.Filled.Assignment, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Nueva Tarea / Pendiente 📚")
+                    Text(if (lang == 1) "New Task / Assignment 📚" else if (lang == 2) "Nova Tarefa / Pendente 📚" else "Nueva Tarea / Pendiente 📚")
                 }
             },
             text = {
@@ -447,7 +471,7 @@ fun TasksScreen(
                     OutlinedTextField(
                         value = taskTitle,
                         onValueChange = { taskTitle = it },
-                        label = { Text("Título de la tarea *") },
+                        label = { Text(if (lang == 1) "Task Title *" else if (lang == 2) "Título da tarefa *" else "Título de la tarea *") },
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag("task_input_title"),
@@ -457,7 +481,7 @@ fun TasksScreen(
                     OutlinedTextField(
                         value = taskDesc,
                         onValueChange = { taskDesc = it },
-                        label = { Text("Instrucciones / Notas (opcional)") },
+                        label = { Text(if (lang == 1) "Instructions / Notes (optional)" else if (lang == 2) "Instruções / Notas (opcional)" else "Instrucciones / Notas (opcional)") },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         maxLines = 3
@@ -465,7 +489,7 @@ fun TasksScreen(
 
                     // Priority levels RadioButtons
                     Text(
-                        text = "Prioridad de entrega",
+                        text = if (lang == 1) "Submission Priority" else if (lang == 2) "Prioridade de entrega" else "Prioridad de entrega",
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
@@ -538,7 +562,7 @@ fun TasksScreen(
                             FilterChip(
                                 selected = selectedSubjectId == null,
                                 onClick = { selectedSubjectId = null },
-                                label = { Text("Ninguna") }
+                                label = { Text(if (lang == 1) "None" else if (lang == 2) "Nenhuma" else "Ninguna") }
                             )
 
                             subjects.forEach { subject ->
@@ -563,13 +587,18 @@ fun TasksScreen(
 
                     // Due Date calculation preset helper
                     Text(
-                        text = "Fecha de Entrega",
+                        text = if (lang == 1) "Due Date" else if (lang == 2) "Data de entrega" else "Fecha de Entrega",
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
 
-                    val activeFormattedDeadline = SimpleDateFormat("EEEE dd/MM/yyyy", Locale("es", "ES")).format(Date(selectedDeadlineMillis))
+                    val dateLocale = when (lang) {
+                        1 -> Locale("en", "US")
+                        2 -> Locale("pt", "BR")
+                        else -> Locale("es", "ES")
+                    }
+                    val activeFormattedDeadline = SimpleDateFormat("EEEE dd/MM/yyyy", dateLocale).format(Date(selectedDeadlineMillis))
                     val calendar = Calendar.getInstance().apply { timeInMillis = selectedDeadlineMillis }
                     val datePickerDialog = android.app.DatePickerDialog(
                         context,
@@ -597,7 +626,7 @@ fun TasksScreen(
                             .padding(12.dp)
                     ) {
                         Text(
-                            text = "📅 $activeFormattedDeadline (Toca para cambiar)",
+                            text = "📅 $activeFormattedDeadline " + (if (lang == 1) "(Tap to edit)" else if (lang == 2) "(Toque para alterar)" else "(Toca para cambiar)"),
                             fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -609,10 +638,10 @@ fun TasksScreen(
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         val presets = listOf(
-                            "Hoy" to 0,
-                            "Mañana" to 1,
-                            "En 3 días" to 3,
-                            "En 1 semana" to 7
+                            (if (lang == 1) "Today" else if (lang == 2) "Hoje" else "Hoy") to 0,
+                            (if (lang == 1) "Tomorrow" else if (lang == 2) "Amanhã" else "Mañana") to 1,
+                            (if (lang == 1) "In 3 days" else if (lang == 2) "Em 3 dias" else "En 3 días") to 3,
+                            (if (lang == 1) "In 1 week" else if (lang == 2) "Em 1 semana" else "En 1 semana") to 7
                         )
                         presets.forEach { (label, daysOffset) ->
                             Button(
@@ -671,19 +700,19 @@ fun TasksScreen(
                     },
                     modifier = Modifier.testTag("edit_dialog_confirm_btn")
                 ) {
-                    Text("Guardar", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
+                    Text(L10n.getString("save", lang), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { editingTask = null }) {
-                    Text("Cancelar", color = Color.Gray)
+                    Text(L10n.getString("cancel", lang), color = Color.Gray)
                 }
             },
             title = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(imageVector = Icons.Filled.Edit, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Modificar Tarea 📚")
+                    Text(if (lang == 1) "Edit Task 📚" else if (lang == 2) "Editar Tarefa 📚" else "Modificar Tarea 📚")
                 }
             },
             text = {
@@ -697,7 +726,7 @@ fun TasksScreen(
                     OutlinedTextField(
                         value = editTitle,
                         onValueChange = { editTitle = it },
-                        label = { Text("Título de la tarea *") },
+                        label = { Text(if (lang == 1) "Task Title *" else if (lang == 2) "Título da tarefa *" else "Título de la tarea *") },
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag("edit_task_input_title"),
@@ -707,7 +736,7 @@ fun TasksScreen(
                     OutlinedTextField(
                         value = editDesc,
                         onValueChange = { editDesc = it },
-                        label = { Text("Instrucciones / Notas (opcional)") },
+                        label = { Text(if (lang == 1) "Instructions / Notes (optional)" else if (lang == 2) "Instruções / Notas (opcional)" else "Instrucciones / Notas (opcional)") },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         maxLines = 3
@@ -715,7 +744,7 @@ fun TasksScreen(
 
                     // Priority levels RadioButtons
                     Text(
-                        text = "Prioridad de entrega",
+                        text = if (lang == 1) "Submission Priority" else if (lang == 2) "Prioridade de entrega" else "Prioridad de entrega",
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
@@ -788,7 +817,7 @@ fun TasksScreen(
                             FilterChip(
                                 selected = editSubjectId == null,
                                 onClick = { editSubjectId = null },
-                                label = { Text("Ninguna") }
+                                label = { Text(if (lang == 1) "None" else if (lang == 2) "Nenhuma" else "Ninguna") }
                             )
 
                             subjects.forEach { subject ->
@@ -813,13 +842,18 @@ fun TasksScreen(
 
                     // Due Date calculation preset helper
                     Text(
-                        text = "Fecha de Entrega",
+                        text = if (lang == 1) "Due Date" else if (lang == 2) "Data de entrega" else "Fecha de Entrega",
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
 
-                    val activeFormattedDeadline = SimpleDateFormat("EEEE dd/MM/yyyy", Locale("es", "ES")).format(Date(editDeadlineMillis))
+                    val dateLocale = when (lang) {
+                        1 -> Locale("en", "US")
+                        2 -> Locale("pt", "BR")
+                        else -> Locale("es", "ES")
+                    }
+                    val activeFormattedDeadline = SimpleDateFormat("EEEE dd/MM/yyyy", dateLocale).format(Date(editDeadlineMillis))
                     val calendar = Calendar.getInstance().apply { timeInMillis = editDeadlineMillis }
                     val datePickerDialog = android.app.DatePickerDialog(
                         context,
@@ -847,7 +881,7 @@ fun TasksScreen(
                             .padding(12.dp)
                     ) {
                         Text(
-                            text = "📅 $activeFormattedDeadline (Toca para cambiar)",
+                            text = "📅 $activeFormattedDeadline " + (if (lang == 1) "(Tap to edit)" else if (lang == 2) "(Toque para alterar)" else "(Toca para cambiar)"),
                             fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -859,10 +893,10 @@ fun TasksScreen(
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         val presets = listOf(
-                            "Hoy" to 0,
-                            "Mañana" to 1,
-                            "En 3 días" to 3,
-                            "En 1 semana" to 7
+                            (if (lang == 1) "Today" else if (lang == 2) "Hoje" else "Hoy") to 0,
+                            (if (lang == 1) "Tomorrow" else if (lang == 2) "Amanhã" else "Mañana") to 1,
+                            (if (lang == 1) "In 3 days" else if (lang == 2) "Em 3 dias" else "En 3 días") to 3,
+                            (if (lang == 1) "In 1 week" else if (lang == 2) "Em 1 semana" else "En 1 semana") to 7
                         )
                         presets.forEach { (label, daysOffset) ->
                             Button(

@@ -28,6 +28,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ui.theme.LocalThemeIsDark
+import com.example.ui.theme.L10n
+import com.example.ui.theme.LocalLanguage
 import com.example.data.Reminder
 import com.example.ui.viewmodel.UniversityViewModel
 import java.text.SimpleDateFormat
@@ -39,6 +41,7 @@ fun RemindersScreen(
     viewModel: UniversityViewModel,
     modifier: Modifier = Modifier
 ) {
+    val lang = LocalLanguage.current
     val context = LocalContext.current
     val reminders by viewModel.reminders.collectAsStateWithLifecycle()
 
@@ -94,7 +97,7 @@ fun RemindersScreen(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Recordatorios",
+                        text = L10n.getString("tab_alertas", lang),
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onBackground
@@ -117,7 +120,7 @@ fun RemindersScreen(
                 ) {
                     Icon(imageVector = Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Nuevo")
+                    Text(L10n.getString("new_btn", lang))
                 }
             }
         }
@@ -146,13 +149,13 @@ fun RemindersScreen(
                         )
                         Spacer(modifier = Modifier.height(10.dp))
                         Text(
-                            text = "No hay alertas registradas",
+                            text = if (lang == 1) "No alerts registered" else if (lang == 2) "Nenhum alerta registrado" else "No hay alertas registradas",
                             fontWeight = FontWeight.Bold,
                             style = MaterialTheme.typography.titleMedium
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Programa recordatorios y alarmas de estudio para recibir notificaciones del sistema.",
+                            text = if (lang == 1) "Schedule study reminders and alarms to receive system notifications." else if (lang == 2) "Agende lembretes de estudo e alarmes para receber notificações do sistema." else "Programa recordatorios y alarmas de estudio para recibir notificaciones del sistema.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                             textAlign = TextAlign.Center
@@ -162,7 +165,17 @@ fun RemindersScreen(
             }
         } else {
             items(reminders, key = { it.id }) { reminder ->
-                val dateStr = SimpleDateFormat("EEEE dd 'de' MMMM - HH:mm", Locale("es", "ES")).format(Date(reminder.triggerTime))
+                val dateLocale = when (lang) {
+                    1 -> Locale("en", "US")
+                    2 -> Locale("pt", "BR")
+                    else -> Locale("es", "ES")
+                }
+                val datePattern = when (lang) {
+                    1 -> "EEEE, MMMM dd - HH:mm"
+                    2 -> "EEEE, dd 'de' MMMM - HH:mm"
+                    else -> "EEEE dd 'de' MMMM - HH:mm"
+                }
+                val dateStr = SimpleDateFormat(datePattern, dateLocale).format(Date(reminder.triggerTime))
                 val isExpired = reminder.triggerTime < System.currentTimeMillis()
 
                 val isDark = LocalThemeIsDark.current
@@ -208,13 +221,13 @@ fun RemindersScreen(
                             }
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = "Alerta: $dateStr",
+                                text = (if (lang == 1) "Alert: " else if (lang == 2) "Alerta: " else "Alerta: ") + dateStr,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                             )
                             if (reminder.preAlertMinutes > 0) {
                                 Text(
-                                    text = "Pre-Alerta: ${reminder.preAlertMinutes} minutos antes",
+                                    text = if (lang == 1) "Pre-Alert: ${reminder.preAlertMinutes} minutes before" else if (lang == 2) "Pré-alerta: ${reminder.preAlertMinutes} minutos antes" else "Pre-Alerta: ${reminder.preAlertMinutes} minutos antes",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.primary
                                 )
@@ -228,10 +241,10 @@ fun RemindersScreen(
                                         .padding(horizontal = 6.dp, vertical = 2.dp)
                                 ) {
                                     Text(
-                                        text = "Repetición: " + when (reminder.repeatIntervalType) {
-                                            "Daily" -> "Diaria"
-                                            "Weekly" -> "Semanal"
-                                            else -> "Simple"
+                                        text = (if (lang == 1) "Repeat: " else if (lang == 2) "Repetição: " else "Repetición: ") + when (reminder.repeatIntervalType) {
+                                            "Daily" -> if (lang == 1) "Daily" else if (lang == 2) "Diária" else "Diaria"
+                                            "Weekly" -> if (lang == 1) "Weekly" else if (lang == 2) "Semanal" else "Semanal"
+                                            else -> if (lang == 1) "Simple" else if (lang == 2) "Simples" else "Simple"
                                         },
                                         fontSize = 10.sp,
                                         fontWeight = FontWeight.Bold
@@ -254,7 +267,7 @@ fun RemindersScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.DeleteOutline,
-                                contentDescription = "Eliminar recordatorio",
+                                contentDescription = if (lang == 1) "Delete reminder" else if (lang == 2) "Excluir lembrete" else "Eliminar recordatorio",
                                 tint = MaterialTheme.colorScheme.tertiary
                             )
                         }
@@ -309,19 +322,19 @@ fun RemindersScreen(
                     },
                     modifier = Modifier.testTag("dialog_confirm_btn")
                 ) {
-                    Text("Guardar", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
+                    Text(L10n.getString("save", lang), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showAddDialog = false }) {
-                    Text("Cancelar", color = Color.Gray)
+                    Text(L10n.getString("cancel", lang), color = Color.Gray)
                 }
             },
             title = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(imageVector = Icons.Filled.NotificationsActive, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Agregar Recordatorio")
+                    Text(if (lang == 1) "Add Reminder" else if (lang == 2) "Adicionar Lembrete" else "Agregar Recordatorio")
                 }
             },
             text = {
@@ -335,7 +348,7 @@ fun RemindersScreen(
                     OutlinedTextField(
                         value = title,
                         onValueChange = { title = it },
-                        label = { Text("Título del recordatorio *") },
+                        label = { Text(if (lang == 1) "Reminder Title *" else if (lang == 2) "Título do lembrete *" else "Título del recordatorio *") },
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag("reminder_input_title"),
@@ -345,14 +358,14 @@ fun RemindersScreen(
                     OutlinedTextField(
                         value = description,
                         onValueChange = { description = it },
-                        label = { Text("Detalle u Notas (opcional)") },
+                        label = { Text(if (lang == 1) "Detail / Notes (optional)" else if (lang == 2) "Detalhes / Notas (opcional)" else "Detalle u Notas (opcional)") },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp)
                     )
 
                     // Priority options
                     Text(
-                        text = "Prioridad de alerta",
+                        text = if (lang == 1) "Alert Priority" else if (lang == 2) "Prioridade do alerta" else "Prioridad de alerta",
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
@@ -364,19 +377,24 @@ fun RemindersScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         listOf("Baja", "Media", "Alta").forEach { prio ->
+                            val displayPrio = when (prio) {
+                                "Baja" -> if (lang == 1) "Low" else if (lang == 2) "Baixa" else "Baja"
+                                "Media" -> if (lang == 1) "Medium" else if (lang == 2) "Média" else "Media"
+                                else -> if (lang == 1) "High" else if (lang == 2) "Alta" else "Alta"
+                            }
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier.clickable { priority = prio }
                             ) {
                                 RadioButton(selected = priority == prio, onClick = { priority = prio })
-                                Text(prio, fontSize = 13.sp)
+                                Text(displayPrio, fontSize = 13.sp)
                             }
                         }
                     }
 
                     // Precise Date and Time inputs picker selections
                     Text(
-                        text = "Programación de fecha y hora *",
+                        text = if (lang == 1) "Date and Time Schedule *" else if (lang == 2) "Agendamento de data e hora *" else "Programación de fecha y hora *",
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
@@ -419,7 +437,7 @@ fun RemindersScreen(
                             OutlinedTextField(
                                 value = manualDateInput,
                                 onValueChange = {},
-                                label = { Text("Fecha") },
+                                label = { Text(if (lang == 1) "Date" else if (lang == 2) "Data" else "Fecha") },
                                 readOnly = true,
                                 enabled = false,
                                 modifier = Modifier.fillMaxWidth(),
@@ -441,7 +459,7 @@ fun RemindersScreen(
                             OutlinedTextField(
                                 value = manualTimeInput,
                                 onValueChange = {},
-                                label = { Text("Hora") },
+                                label = { Text(if (lang == 1) "Time" else if (lang == 2) "Hora" else "Hora") },
                                 readOnly = true,
                                 enabled = false,
                                 modifier = Modifier.fillMaxWidth(),
@@ -458,7 +476,7 @@ fun RemindersScreen(
 
                     // Preset alerts options prior to the event (Pre-Alert minutes)
                     Text(
-                        text = "Anticipación de Alerta (Pre-aviso)",
+                        text = if (lang == 1) "Alert Advance Notice" else if (lang == 2) "Antecedência do Alerta" else "Anticipación de Alerta (Pre-aviso)",
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
@@ -469,7 +487,12 @@ fun RemindersScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        val offsets = listOf(0 to "A tiempo", 5 to "5m antes", 15 to "15m antes", 30 to "30m antes")
+                        val offsets = listOf(
+                            0 to (if (lang == 1) "On time" else if (lang == 2) "No prazo" else "A tiempo"),
+                            5 to (if (lang == 1) "5m before" else if (lang == 2) "5m antes" else "5m antes"),
+                            15 to (if (lang == 1) "15m before" else if (lang == 2) "15m antes" else "15m antes"),
+                            30 to (if (lang == 1) "30m before" else if (lang == 2) "30m antes" else "30m antes")
+                        )
                         offsets.forEach { (minutes, label) ->
                             Row(
                                 modifier = Modifier.clickable { preAlertMinutes = minutes },
@@ -483,7 +506,7 @@ fun RemindersScreen(
 
                     // Alarms repeat intervals
                     Text(
-                        text = "Intervalo de repetición",
+                        text = if (lang == 1) "Repeat Interval" else if (lang == 2) "Intervalo de repetição" else "Intervalo de repetición",
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
@@ -494,7 +517,11 @@ fun RemindersScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        val repeats = listOf("None" to "Solo una vez", "Daily" to "Diario", "Weekly" to "Semanal")
+                        val repeats = listOf(
+                            "None" to (if (lang == 1) "Once" else if (lang == 2) "Apenas uma vez" else "Solo una vez"),
+                            "Daily" to (if (lang == 1) "Daily" else if (lang == 2) "Diariamente" else "Diario"),
+                            "Weekly" to (if (lang == 1) "Weekly" else if (lang == 2) "Semanalmente" else "Semanal")
+                        )
                         repeats.forEach { (type, label) ->
                             Row(
                                 modifier = Modifier.clickable { repeatType = type },
